@@ -28,20 +28,25 @@ namespace MassTransitInMemoryTestingExample.Tests
         {
             _fakeCommandConsumer = new Consumer<MyCommand>(_manualResetEvent);
             _fakeCommandFaultConsumer = new Consumer<Fault<MyCommand>>(_manualResetEvent);
-            _consumerRegistrar = new ConsumerRegistrar(
-                QueueName,
-                new[] { typeof(Consumer<MyCommand>) },
-                CreateConsumer());
+            _consumerRegistrar = CreateSystemUnderTest();
             ConfigureLog4Net();
             CreateBus();
             _busControl.Start();
+        }
+
+        private ConsumerRegistrar CreateSystemUnderTest()
+        {
+            return new ConsumerRegistrar(
+                QueueName,
+                new[] { typeof(Consumer<MyCommand>) },
+                CreateConsumer());
         }
 
         private Func<Type, IConsumer> CreateConsumer()
         {
             // Very simple in this test as we've only got one type of consumer. In your production code, this func would probably use
             // an IoC container to resolve the consumer type.
-            return type => _fakeCommandConsumer;
+            return consumerType => _fakeCommandConsumer;
         }
 
         private void ConfigureLog4Net()
