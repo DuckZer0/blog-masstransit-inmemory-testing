@@ -29,8 +29,8 @@ namespace MassTransitInMemoryTestingExample.Tests
             _fakeCommandConsumer = new Consumer<MyCommand>(_manualResetEvent);
             _fakeCommandFaultConsumer = new Consumer<Fault<MyCommand>>(_manualResetEvent);
             _consumerRegistrar = new ConsumerRegistrar(
-                QueueName, 
-                new[] { typeof(Consumer<MyCommand>) }, 
+                QueueName,
+                new[] { typeof(Consumer<MyCommand>) },
                 CreateConsumer());
             ConfigureLog4Net();
             CreateBus();
