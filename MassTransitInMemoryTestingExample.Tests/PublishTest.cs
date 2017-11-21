@@ -1,8 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using log4net.Config;
 using MassTransit;
 using MassTransit.Log4NetIntegration;
 using NUnit.Framework;
@@ -74,7 +72,7 @@ namespace MassTransitInMemoryTestingExample.Tests
         }
 
         [Test]
-        public async Task Registers_all_consumers_listed_in_consumerTypeProvider_with_the_queue_from_the_receiveEndpointConfiguration()
+        public async Task Registers_consumer_type_supplied_to_consumerRegistrar()
         {
             await PublishFakeEvent();
             WaitUntilBusHasProcessedMessageOrTimedOut(_manualResetEvent);
