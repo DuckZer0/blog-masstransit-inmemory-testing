@@ -31,9 +31,7 @@ namespace MassTransitInMemoryTestingExample.Tests
 
         private ConsumerRegistrar CreateSystemUnderTest()
         {
-            return new ConsumerRegistrar(
-                QueueName,
-                new[] { typeof(Consumer<MyCommand>) },
+            return new ConsumerRegistrar(new[] { typeof(Consumer<MyCommand>) },
                 CreateConsumer());
         }
 
@@ -57,7 +55,7 @@ namespace MassTransitInMemoryTestingExample.Tests
 
         private void ConfigureReceiveEndpoints(IInMemoryBusFactoryConfigurator inMemoryBusFactoryConfigurator)
         {
-            inMemoryBusFactoryConfigurator.ReceiveEndpoint(_consumerRegistrar.QueueName, _consumerRegistrar.ConfigureEndpoint);
+            inMemoryBusFactoryConfigurator.ReceiveEndpoint(QueueName, _consumerRegistrar.ConfigureEndpoint);
 
             ConfigureReceiveEndpointToListenForFaults(inMemoryBusFactoryConfigurator);
         }
