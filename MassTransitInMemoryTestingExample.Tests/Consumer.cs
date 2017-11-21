@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MassTransit;
 
-namespace MassTransitInMemoryTestingExample
+namespace MassTransitInMemoryTestingExample.Tests
 {
     public class Consumer<TMessage>
         : IConsumer<TMessage> where TMessage : class
