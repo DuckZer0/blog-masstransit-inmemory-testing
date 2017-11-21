@@ -26,7 +26,6 @@ namespace MassTransitInMemoryTestingExample.Tests
             _fakeEventConsumer = new Consumer<MyEvent>(_manualResetEvent);
             _fakeEventFaultConsumer = new Consumer<Fault<MyEvent>>(_manualResetEvent);
             _consumerRegistrar = CreateSystemUnderTest();
-            ConfigureLog4Net();
             CreateBus();
             _busControl.Start();
         }
@@ -44,11 +43,6 @@ namespace MassTransitInMemoryTestingExample.Tests
             // Very simple in this test as we've only got one type of consumer. In your production code, this func would probably use
             // an IoC container to resolve the consumer type.
             return consumerType => _fakeEventConsumer;
-        }
-
-        private void ConfigureLog4Net()
-        {
-            XmlConfigurator.Configure(new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log4net.config")));
         }
 
         private void CreateBus()
