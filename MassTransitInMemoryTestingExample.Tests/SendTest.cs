@@ -1,9 +1,7 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using log4net;
 using log4net.Config;
 using MassTransit;
 using MassTransit.Log4NetIntegration;
@@ -51,8 +49,7 @@ namespace MassTransitInMemoryTestingExample.Tests
 
         private void ConfigureLog4Net()
         {
-            var loggerRepository = LogManager.GetRepository(Assembly.GetExecutingAssembly());
-            XmlConfigurator.Configure(loggerRepository, new FileInfo("log4net.config"));
+            XmlConfigurator.Configure(new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log4net.config")));
         }
 
         private void CreateBus()
