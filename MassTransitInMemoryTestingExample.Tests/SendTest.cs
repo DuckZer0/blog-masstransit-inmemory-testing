@@ -18,19 +18,19 @@ namespace MassTransitInMemoryTestingExample.Tests
         private const string ErrorQueueName = "myQueue_error";
         private const string LoopbackAddress = "loopback://localhost/";
         private IBusControl _busControl;
-        private Consumer<FakeCommand> _fakeCommandConsumer;
-        private Consumer<Fault<FakeCommand>> _fakeCommandFaultConsumer;
+        private Consumer<MyCommand> _fakeCommandConsumer;
+        private Consumer<Fault<MyCommand>> _fakeCommandFaultConsumer;
         private readonly ManualResetEvent _manualResetEvent = new ManualResetEvent(false);
         private ConsumerRegistrar _consumerRegistrar;
 
         [SetUp]
         public void SetUp()
         {
-            _fakeCommandConsumer = new Consumer<FakeCommand>(_manualResetEvent);
-            _fakeCommandFaultConsumer = new Consumer<Fault<FakeCommand>>(_manualResetEvent);
+            _fakeCommandConsumer = new Consumer<MyCommand>(_manualResetEvent);
+            _fakeCommandFaultConsumer = new Consumer<Fault<MyCommand>>(_manualResetEvent);
             _consumerRegistrar = new ConsumerRegistrar(
                 QueueName, 
-                new[] { typeof(Consumer<FakeCommand>) }, 
+                new[] { typeof(Consumer<MyCommand>) }, 
                 CreateConsumer());
             ConfigureLog4Net();
             CreateBus();
@@ -73,7 +73,7 @@ namespace MassTransitInMemoryTestingExample.Tests
             inMemoryBusFactoryConfigurator.ReceiveEndpoint(ErrorQueueName,
                 receiveEndpointConfigurator =>
                 {
-                    receiveEndpointConfigurator.Consumer(typeof(Consumer<Fault<FakeCommand>>),
+                    receiveEndpointConfigurator.Consumer(typeof(Consumer<Fault<MyCommand>>),
                         type => _fakeCommandFaultConsumer);
                 });
         }
@@ -91,7 +91,7 @@ namespace MassTransitInMemoryTestingExample.Tests
         private async Task SendFakeCommand()
         {
             var sendEndpoint = await GetSendEndpoint();
-            await sendEndpoint.Send(new FakeCommand());
+            await sendEndpoint.Send(new MyCommand());
         }
 
         private async Task<ISendEndpoint> GetSendEndpoint()

@@ -1,6 +1,6 @@
 ﻿namespace MassTransitInMemoryTestingExample.Tests
 {
-    public class FakeCommand
+    public class MyCommand
     {
     }
 }
