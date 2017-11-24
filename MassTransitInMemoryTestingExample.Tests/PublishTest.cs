@@ -16,29 +16,14 @@ namespace MassTransitInMemoryTestingExample.Tests
         private Consumer<MyEvent> _fakeEventConsumer;
         private Consumer<Fault<MyEvent>> _fakeEventFaultConsumer;
         private readonly ManualResetEvent _manualResetEvent = new ManualResetEvent(false);
-        private ConsumerRegistrar _consumerRegistrar;
 
         [SetUp]
         public void SetUp()
         {
             _fakeEventConsumer = new Consumer<MyEvent>(_manualResetEvent);
             _fakeEventFaultConsumer = new Consumer<Fault<MyEvent>>(_manualResetEvent);
-            _consumerRegistrar = CreateSystemUnderTest();
             CreateBus();
             _busControl.Start();
-        }
-
-        private ConsumerRegistrar CreateSystemUnderTest()
-        {
-            return new ConsumerRegistrar(new[] { typeof(Consumer<MyEvent>) },
-                CreateConsumer());
-        }
-
-        private Func<Type, IConsumer> CreateConsumer()
-        {
-            // Very simple in this test as we've only got one type of consumer. In your production code, this func would probably use
-            // an IoC container to resolve the consumer type.
-            return consumerType => _fakeEventConsumer;
         }
 
         private void CreateBus()
@@ -54,7 +39,10 @@ namespace MassTransitInMemoryTestingExample.Tests
 
         private void ConfigureReceiveEndpoints(IInMemoryBusFactoryConfigurator inMemoryBusFactoryConfigurator)
         {
-            inMemoryBusFactoryConfigurator.ReceiveEndpoint(QueueName, _consumerRegistrar.ConfigureEndpoint);
+            inMemoryBusFactoryConfigurator.ReceiveEndpoint(QueueName, receiveEndpointConfigurator =>
+            {
+                receiveEndpointConfigurator.Consumer(typeof(Consumer<MyEvent>), consumerType => _fakeEventConsumer);
+            });
 
             ConfigureReceiveEndpointToListenForFaults(inMemoryBusFactoryConfigurator);
         }

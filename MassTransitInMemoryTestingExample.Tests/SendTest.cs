@@ -17,29 +17,14 @@ namespace MassTransitInMemoryTestingExample.Tests
         private Consumer<MyCommand> _fakeCommandConsumer;
         private Consumer<Fault<MyCommand>> _fakeCommandFaultConsumer;
         private readonly ManualResetEvent _manualResetEvent = new ManualResetEvent(false);
-        private ConsumerRegistrar _consumerRegistrar;
 
         [SetUp]
         public void SetUp()
         {
             _fakeCommandConsumer = new Consumer<MyCommand>(_manualResetEvent);
             _fakeCommandFaultConsumer = new Consumer<Fault<MyCommand>>(_manualResetEvent);
-            _consumerRegistrar = CreateSystemUnderTest();
             CreateBus();
             _busControl.Start();
-        }
-
-        private ConsumerRegistrar CreateSystemUnderTest()
-        {
-            return new ConsumerRegistrar(new[] { typeof(Consumer<MyCommand>) },
-                CreateConsumer());
-        }
-
-        private Func<Type, IConsumer> CreateConsumer()
-        {
-            // Very simple in this test as we've only got one type of consumer. In your production code, this func would probably use
-            // an IoC container to resolve the consumer type.
-            return consumerType => _fakeCommandConsumer;
         }
 
         private void CreateBus()
@@ -55,19 +40,24 @@ namespace MassTransitInMemoryTestingExample.Tests
 
         private void ConfigureReceiveEndpoints(IInMemoryBusFactoryConfigurator inMemoryBusFactoryConfigurator)
         {
-            inMemoryBusFactoryConfigurator.ReceiveEndpoint(QueueName, _consumerRegistrar.ConfigureEndpoint);
-
+            ConfigureReceiveEndpointForMyCommand(inMemoryBusFactoryConfigurator);
             ConfigureReceiveEndpointToListenForFaults(inMemoryBusFactoryConfigurator);
+        }
+
+        private void ConfigureReceiveEndpointForMyCommand(IInMemoryBusFactoryConfigurator inMemoryBusFactoryConfigurator)
+        {
+            inMemoryBusFactoryConfigurator.ReceiveEndpoint(QueueName, receiveEndpointConfigurator =>
+            {
+                receiveEndpointConfigurator.Consumer(typeof(Consumer<MyCommand>), consumerType => _fakeCommandConsumer);
+            });
         }
 
         private void ConfigureReceiveEndpointToListenForFaults(IInMemoryBusFactoryConfigurator inMemoryBusFactoryConfigurator)
         {
-            inMemoryBusFactoryConfigurator.ReceiveEndpoint(ErrorQueueName,
-                receiveEndpointConfigurator =>
-                {
-                    receiveEndpointConfigurator.Consumer(typeof(Consumer<Fault<MyCommand>>),
-                        type => _fakeCommandFaultConsumer);
-                });
+            inMemoryBusFactoryConfigurator.ReceiveEndpoint(ErrorQueueName, receiveEndpointConfigurator =>
+            {
+                receiveEndpointConfigurator.Consumer(typeof(Consumer<Fault<MyCommand>>), type => _fakeCommandFaultConsumer);
+            });
         }
 
         [Test]
