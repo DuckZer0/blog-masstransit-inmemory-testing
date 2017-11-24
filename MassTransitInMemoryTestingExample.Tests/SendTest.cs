@@ -14,15 +14,15 @@ namespace MassTransitInMemoryTestingExample.Tests
         private const string ErrorQueueName = "myQueue_error";
         private const string LoopbackAddress = "loopback://localhost/";
         private IBusControl _busControl;
-        private Consumer<MyCommand> _fakeCommandConsumer;
-        private Consumer<Fault<MyCommand>> _fakeCommandFaultConsumer;
+        private Consumer<MyCommand> _myCommandConsumer;
+        private Consumer<Fault<MyCommand>> _myCommandFaultConsumer;
         private readonly ManualResetEvent _manualResetEvent = new ManualResetEvent(false);
 
         [SetUp]
         public void SetUp()
         {
-            _fakeCommandConsumer = new Consumer<MyCommand>(_manualResetEvent);
-            _fakeCommandFaultConsumer = new Consumer<Fault<MyCommand>>(_manualResetEvent);
+            _myCommandConsumer = new Consumer<MyCommand>(_manualResetEvent);
+            _myCommandFaultConsumer = new Consumer<Fault<MyCommand>>(_manualResetEvent);
             CreateBus();
             _busControl.Start();
         }
@@ -48,7 +48,7 @@ namespace MassTransitInMemoryTestingExample.Tests
         {
             busFactoryConfigurator.ReceiveEndpoint(QueueName, receiveEndpointConfigurator =>
             {
-                receiveEndpointConfigurator.Consumer(typeof(Consumer<MyCommand>), consumerType => _fakeCommandConsumer);
+                receiveEndpointConfigurator.Consumer(typeof(Consumer<MyCommand>), consumerType => _myCommandConsumer);
             });
         }
 
@@ -56,7 +56,7 @@ namespace MassTransitInMemoryTestingExample.Tests
         {
             busFactoryConfigurator.ReceiveEndpoint(ErrorQueueName, receiveEndpointConfigurator =>
             {
-                receiveEndpointConfigurator.Consumer(typeof(Consumer<Fault<MyCommand>>), type => _fakeCommandFaultConsumer);
+                receiveEndpointConfigurator.Consumer(typeof(Consumer<Fault<MyCommand>>), type => _myCommandFaultConsumer);
             });
         }
 
@@ -66,8 +66,8 @@ namespace MassTransitInMemoryTestingExample.Tests
             await SendMyCommand();
             WaitUntilBusHasProcessedMessageOrTimedOut(_manualResetEvent);
 
-            Assert.That(_fakeCommandConsumer.ReceivedMessage, Is.True);
-            Assert.That(_fakeCommandFaultConsumer.ReceivedMessage, Is.False);
+            Assert.That(_myCommandConsumer.ReceivedMessage, Is.True);
+            Assert.That(_myCommandFaultConsumer.ReceivedMessage, Is.False);
         }
 
         private async Task SendMyCommand()

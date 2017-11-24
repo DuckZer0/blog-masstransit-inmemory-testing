@@ -13,15 +13,15 @@ namespace MassTransitInMemoryTestingExample.Tests
         private const string QueueName = "myQueue";
         private const string ErrorQueueName = "myQueue_error";
         private IBusControl _busControl;
-        private Consumer<MyEvent> _fakeEventConsumer;
-        private Consumer<Fault<MyEvent>> _fakeEventFaultConsumer;
+        private Consumer<MyEvent> _myEventConsumer;
+        private Consumer<Fault<MyEvent>> _myEventFaultConsumer;
         private readonly ManualResetEvent _manualResetEvent = new ManualResetEvent(false);
 
         [SetUp]
         public void SetUp()
         {
-            _fakeEventConsumer = new Consumer<MyEvent>(_manualResetEvent);
-            _fakeEventFaultConsumer = new Consumer<Fault<MyEvent>>(_manualResetEvent);
+            _myEventConsumer = new Consumer<MyEvent>(_manualResetEvent);
+            _myEventFaultConsumer = new Consumer<Fault<MyEvent>>(_manualResetEvent);
             CreateBus();
             _busControl.Start();
         }
@@ -48,7 +48,7 @@ namespace MassTransitInMemoryTestingExample.Tests
             busFactoryConfigurator.ReceiveEndpoint(QueueName,
                 receiveEndpointConfigurator =>
                 {
-                    receiveEndpointConfigurator.Consumer(typeof(Consumer<MyEvent>), consumerType => _fakeEventConsumer);
+                    receiveEndpointConfigurator.Consumer(typeof(Consumer<MyEvent>), consumerType => _myEventConsumer);
                 });
         }
 
@@ -57,7 +57,7 @@ namespace MassTransitInMemoryTestingExample.Tests
             busFactoryConfigurator.ReceiveEndpoint(ErrorQueueName,
                 receiveEndpointConfigurator =>
                 {
-                    receiveEndpointConfigurator.Consumer(typeof(Consumer<Fault<MyEvent>>), type => _fakeEventFaultConsumer);
+                    receiveEndpointConfigurator.Consumer(typeof(Consumer<Fault<MyEvent>>), type => _myEventFaultConsumer);
                 });
         }
 
@@ -67,8 +67,8 @@ namespace MassTransitInMemoryTestingExample.Tests
             await PublishMyEvent();
             WaitUntilBusHasProcessedMessageOrTimedOut(_manualResetEvent);
 
-            Assert.That(_fakeEventConsumer.ReceivedMessage, Is.True);
-            Assert.That(_fakeEventFaultConsumer.ReceivedMessage, Is.False);
+            Assert.That(_myEventConsumer.ReceivedMessage, Is.True);
+            Assert.That(_myEventFaultConsumer.ReceivedMessage, Is.False);
         }
 
         private async Task PublishMyEvent()
