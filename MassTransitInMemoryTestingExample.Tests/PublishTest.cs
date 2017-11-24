@@ -31,43 +31,47 @@ namespace MassTransitInMemoryTestingExample.Tests
             _busControl = Bus.Factory.CreateUsingInMemory(ConfigureBus);
         }
 
-        private void ConfigureBus(IInMemoryBusFactoryConfigurator inMemoryBusFactoryConfigurator)
+        private void ConfigureBus(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            inMemoryBusFactoryConfigurator.UseLog4Net();
-            ConfigureReceiveEndpoints(inMemoryBusFactoryConfigurator);
+            busFactoryConfigurator.UseLog4Net();
+            ConfigureReceiveEndpoints(busFactoryConfigurator);
         }
 
-        private void ConfigureReceiveEndpoints(IInMemoryBusFactoryConfigurator inMemoryBusFactoryConfigurator)
+        private void ConfigureReceiveEndpoints(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            inMemoryBusFactoryConfigurator.ReceiveEndpoint(QueueName, receiveEndpointConfigurator =>
-            {
-                receiveEndpointConfigurator.Consumer(typeof(Consumer<MyEvent>), consumerType => _fakeEventConsumer);
-            });
-
-            ConfigureReceiveEndpointToListenForFaults(inMemoryBusFactoryConfigurator);
+            ConfigureReceiveEndpointsToListenForMyEvent(busFactoryConfigurator);
+            ConfigureReceiveEndpointToListenForFaults(busFactoryConfigurator);
         }
 
-        private void ConfigureReceiveEndpointToListenForFaults(IInMemoryBusFactoryConfigurator inMemoryBusFactoryConfigurator)
+        private void ConfigureReceiveEndpointsToListenForMyEvent(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            inMemoryBusFactoryConfigurator.ReceiveEndpoint(ErrorQueueName,
+            busFactoryConfigurator.ReceiveEndpoint(QueueName,
                 receiveEndpointConfigurator =>
                 {
-                    receiveEndpointConfigurator.Consumer(typeof(Consumer<Fault<MyEvent>>),
-                        type => _fakeEventFaultConsumer);
+                    receiveEndpointConfigurator.Consumer(typeof(Consumer<MyEvent>), consumerType => _fakeEventConsumer);
+                });
+        }
+
+        private void ConfigureReceiveEndpointToListenForFaults(IBusFactoryConfigurator busFactoryConfigurator)
+        {
+            busFactoryConfigurator.ReceiveEndpoint(ErrorQueueName,
+                receiveEndpointConfigurator =>
+                {
+                    receiveEndpointConfigurator.Consumer(typeof(Consumer<Fault<MyEvent>>), type => _fakeEventFaultConsumer);
                 });
         }
 
         [Test]
         public async Task Registers_consumer_type_supplied_to_consumerRegistrar()
         {
-            await PublishFakeEvent();
+            await PublishMyEvent();
             WaitUntilBusHasProcessedMessageOrTimedOut(_manualResetEvent);
 
             Assert.That(_fakeEventConsumer.ReceivedMessage, Is.True);
             Assert.That(_fakeEventFaultConsumer.ReceivedMessage, Is.False);
         }
 
-        private async Task PublishFakeEvent()
+        private async Task PublishMyEvent()
         {
             await _busControl.Publish(new MyEvent());
         }

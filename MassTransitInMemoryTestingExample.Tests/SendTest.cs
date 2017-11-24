@@ -32,29 +32,29 @@ namespace MassTransitInMemoryTestingExample.Tests
             _busControl = Bus.Factory.CreateUsingInMemory(ConfigureBus);
         }
 
-        private void ConfigureBus(IInMemoryBusFactoryConfigurator inMemoryBusFactoryConfigurator)
+        private void ConfigureBus(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            inMemoryBusFactoryConfigurator.UseLog4Net();
-            ConfigureReceiveEndpoints(inMemoryBusFactoryConfigurator);
+            busFactoryConfigurator.UseLog4Net();
+            ConfigureReceiveEndpoints(busFactoryConfigurator);
         }
 
-        private void ConfigureReceiveEndpoints(IInMemoryBusFactoryConfigurator inMemoryBusFactoryConfigurator)
+        private void ConfigureReceiveEndpoints(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            ConfigureReceiveEndpointForMyCommand(inMemoryBusFactoryConfigurator);
-            ConfigureReceiveEndpointToListenForFaults(inMemoryBusFactoryConfigurator);
+            ConfigureReceiveEndpointForMyCommand(busFactoryConfigurator);
+            ConfigureReceiveEndpointToListenForFaults(busFactoryConfigurator);
         }
 
-        private void ConfigureReceiveEndpointForMyCommand(IInMemoryBusFactoryConfigurator inMemoryBusFactoryConfigurator)
+        private void ConfigureReceiveEndpointForMyCommand(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            inMemoryBusFactoryConfigurator.ReceiveEndpoint(QueueName, receiveEndpointConfigurator =>
+            busFactoryConfigurator.ReceiveEndpoint(QueueName, receiveEndpointConfigurator =>
             {
                 receiveEndpointConfigurator.Consumer(typeof(Consumer<MyCommand>), consumerType => _fakeCommandConsumer);
             });
         }
 
-        private void ConfigureReceiveEndpointToListenForFaults(IInMemoryBusFactoryConfigurator inMemoryBusFactoryConfigurator)
+        private void ConfigureReceiveEndpointToListenForFaults(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            inMemoryBusFactoryConfigurator.ReceiveEndpoint(ErrorQueueName, receiveEndpointConfigurator =>
+            busFactoryConfigurator.ReceiveEndpoint(ErrorQueueName, receiveEndpointConfigurator =>
             {
                 receiveEndpointConfigurator.Consumer(typeof(Consumer<Fault<MyCommand>>), type => _fakeCommandFaultConsumer);
             });
@@ -63,14 +63,14 @@ namespace MassTransitInMemoryTestingExample.Tests
         [Test]
         public async Task Registers_consumer_type_supplied_to_consumerRegistrar()
         {
-            await SendFakeCommand();
+            await SendMyCommand();
             WaitUntilBusHasProcessedMessageOrTimedOut(_manualResetEvent);
 
             Assert.That(_fakeCommandConsumer.ReceivedMessage, Is.True);
             Assert.That(_fakeCommandFaultConsumer.ReceivedMessage, Is.False);
         }
 
-        private async Task SendFakeCommand()
+        private async Task SendMyCommand()
         {
             var sendEndpoint = await GetSendEndpoint();
             await sendEndpoint.Send(new MyCommand());
