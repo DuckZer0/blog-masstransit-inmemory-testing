@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MassTransit;
@@ -67,8 +68,8 @@ namespace MassTransitInMemoryTestingExample.Tests
             await PublishMyEvent();
             WaitUntilBusHasProcessedMessageOrTimedOut(_manualResetEvent);
 
-            Assert.That(_myEventConsumer.ReceivedMessage, Is.True);
-            Assert.That(_myEventFaultConsumer.ReceivedMessage, Is.False);
+            Assert.That(_myEventConsumer.ReceivedMessages.Any(), Is.True);
+            Assert.That(_myEventFaultConsumer.ReceivedMessages.Any(), Is.False);
         }
 
         private async Task PublishMyEvent()

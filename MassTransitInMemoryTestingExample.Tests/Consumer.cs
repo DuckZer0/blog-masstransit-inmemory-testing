@@ -9,7 +9,6 @@ namespace MassTransitInMemoryTestingExample.Tests
         : IConsumer<TMessage> where TMessage : class
     {
         private readonly ManualResetEvent _manualResetEvent;
-        public bool ReceivedMessage;
         public IList<TMessage> ReceivedMessages { get; }
 
         public Consumer(ManualResetEvent manualResetEvent)
@@ -20,7 +19,6 @@ namespace MassTransitInMemoryTestingExample.Tests
 
         public async Task Consume(ConsumeContext<TMessage> context)
         {
-            ReceivedMessage = true;
             ReceivedMessages.Add(context.Message);
             AllowTestThreadToContinueToAssertions();
         }

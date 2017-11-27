@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MassTransit;
@@ -66,8 +67,8 @@ namespace MassTransitInMemoryTestingExample.Tests
             await SendMyCommand();
             WaitUntilBusHasProcessedMessageOrTimedOut(_manualResetEvent);
 
-            Assert.That(_myCommandConsumer.ReceivedMessage, Is.True);
-            Assert.That(_myCommandFaultConsumer.ReceivedMessage, Is.False);
+            Assert.That(_myCommandConsumer.ReceivedMessages.Any(), Is.True);
+            Assert.That(_myCommandFaultConsumer.ReceivedMessages.Any(), Is.False);
         }
 
         private async Task SendMyCommand()
