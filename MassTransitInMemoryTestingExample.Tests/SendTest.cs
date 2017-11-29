@@ -15,14 +15,12 @@ namespace MassTransitInMemoryTestingExample.Tests
         private const string ErrorQueueName = "myQueue_error";
         private const string LoopbackAddress = "loopback://localhost/";
         private IBusControl _busControl;
-        private MyCommandConsumer _myCommandConsumer;
-        private MyCommandFaultConsumer _myCommandFaultConsumer;
+        private IConsumerFactory _consumerFactory;
 
         [SetUp]
         public void SetUp()
         {
-            _myCommandConsumer = new MyCommandConsumer();
-            _myCommandFaultConsumer = new MyCommandFaultConsumer();
+            _consumerFactory = new DefaultConstructorConsumerFactory();
             CreateBus();
             _busControl.Start();
         }
@@ -48,7 +46,7 @@ namespace MassTransitInMemoryTestingExample.Tests
         {
             busFactoryConfigurator.ReceiveEndpoint(QueueName, receiveEndpointConfigurator =>
             {
-                receiveEndpointConfigurator.Consumer(typeof(MyCommandConsumer), consumerType => _myCommandConsumer);
+                receiveEndpointConfigurator.Consumer(typeof(MyCommandConsumer), _consumerFactory.Create);
             });
         }
 
@@ -56,7 +54,7 @@ namespace MassTransitInMemoryTestingExample.Tests
         {
             busFactoryConfigurator.ReceiveEndpoint(ErrorQueueName, receiveEndpointConfigurator =>
             {
-                receiveEndpointConfigurator.Consumer(typeof(MyCommandFaultConsumer), type => _myCommandFaultConsumer);
+                receiveEndpointConfigurator.Consumer(typeof(MyCommandFaultConsumer), _consumerFactory.Create);
             });
         }
 

@@ -14,14 +14,12 @@ namespace MassTransitInMemoryTestingExample.Tests
         private const string QueueName = "myQueue";
         private const string ErrorQueueName = "myQueue_error";
         private IBusControl _busControl;
-        private MyEventConsumer _myEventConsumer;
-        private MyEventFaultConsumer _myEventFaultConsumer;
+        private IConsumerFactory _consumerFactory;
 
         [SetUp]
         public void SetUp()
         {
-            _myEventConsumer = new MyEventConsumer();
-            _myEventFaultConsumer = new MyEventFaultConsumer();
+            _consumerFactory = new DefaultConstructorConsumerFactory();
             CreateBus();
             _busControl.Start();
         }
@@ -48,7 +46,7 @@ namespace MassTransitInMemoryTestingExample.Tests
             busFactoryConfigurator.ReceiveEndpoint(QueueName,
                 receiveEndpointConfigurator =>
                 {
-                    receiveEndpointConfigurator.Consumer(typeof(MyEventConsumer), consumerType => _myEventConsumer);
+                    receiveEndpointConfigurator.Consumer(typeof(MyEventConsumer), _consumerFactory.Create);
                 });
         }
 
@@ -57,7 +55,7 @@ namespace MassTransitInMemoryTestingExample.Tests
             busFactoryConfigurator.ReceiveEndpoint(ErrorQueueName,
                 receiveEndpointConfigurator =>
                 {
-                    receiveEndpointConfigurator.Consumer(typeof(MyEventFaultConsumer), type => _myEventFaultConsumer);
+                    receiveEndpointConfigurator.Consumer(typeof(MyEventFaultConsumer), _consumerFactory.Create);
                 });
         }
 
