@@ -1,5 +1,4 @@
-﻿using System;
-using MassTransit;
+﻿using MassTransit;
 using MassTransit.Log4NetIntegration;
 
 namespace MassTransitInMemoryTestingExample
@@ -29,26 +28,14 @@ namespace MassTransitInMemoryTestingExample
 
         private void ConfigureConsumersListeningOnMainQueue(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            var consumerTypes = new[] { typeof(MyCommandConsumer), typeof(MyEventConsumer) };
-            RegisterConsumers(busFactoryConfigurator, QueueName, consumerTypes);
+            var consumerRegistrar = new ConsumerRegistrar(_consumerFactory, QueueName, typeof(MyCommandConsumer), typeof(MyEventConsumer));
+            consumerRegistrar.Register(busFactoryConfigurator);
         }
 
         private void ConfigureConsumersListeningOnErrorQueue(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            var consumerTypes = new[] { typeof(MyCommandFaultConsumer), typeof(MyEventFaultConsumer) };
-            RegisterConsumers(busFactoryConfigurator, ErrorQueueName, consumerTypes);
-        }
-
-        private void RegisterConsumers(IBusFactoryConfigurator busFactoryConfigurator, string queueName, Type[] consumerTypes)
-        {
-            busFactoryConfigurator.ReceiveEndpoint(queueName,
-                receiveEndpointConfigurator =>
-                {
-                    foreach (var consumerType in consumerTypes)
-                    {
-                        receiveEndpointConfigurator.Consumer(consumerType, _consumerFactory.Create);
-                    }
-                });
+            var consumerRegistrar = new ConsumerRegistrar(_consumerFactory, ErrorQueueName, typeof(MyCommandFaultConsumer), typeof(MyEventFaultConsumer));
+            consumerRegistrar.Register(busFactoryConfigurator);
         }
     }
 }
