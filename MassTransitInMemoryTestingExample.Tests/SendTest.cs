@@ -15,15 +15,14 @@ namespace MassTransitInMemoryTestingExample.Tests
         private const string ErrorQueueName = "myQueue_error";
         private const string LoopbackAddress = "loopback://localhost/";
         private IBusControl _busControl;
-        private Consumer<MyCommand> _myCommandConsumer;
-        private Consumer<Fault<MyCommand>> _myCommandFaultConsumer;
-        private readonly ManualResetEvent _manualResetEvent = new ManualResetEvent(false);
+        private MyCommandConsumer _myCommandConsumer;
+        private MyCommandFaultConsumer _myCommandFaultConsumer;
 
         [SetUp]
         public void SetUp()
         {
-            _myCommandConsumer = new Consumer<MyCommand>(_manualResetEvent);
-            _myCommandFaultConsumer = new Consumer<Fault<MyCommand>>(_manualResetEvent);
+            _myCommandConsumer = new MyCommandConsumer();
+            _myCommandFaultConsumer = new MyCommandFaultConsumer();
             CreateBus();
             _busControl.Start();
         }
@@ -49,7 +48,7 @@ namespace MassTransitInMemoryTestingExample.Tests
         {
             busFactoryConfigurator.ReceiveEndpoint(QueueName, receiveEndpointConfigurator =>
             {
-                receiveEndpointConfigurator.Consumer(typeof(Consumer<MyCommand>), consumerType => _myCommandConsumer);
+                receiveEndpointConfigurator.Consumer(typeof(MyCommandConsumer), consumerType => _myCommandConsumer);
             });
         }
 
@@ -57,7 +56,7 @@ namespace MassTransitInMemoryTestingExample.Tests
         {
             busFactoryConfigurator.ReceiveEndpoint(ErrorQueueName, receiveEndpointConfigurator =>
             {
-                receiveEndpointConfigurator.Consumer(typeof(Consumer<Fault<MyCommand>>), type => _myCommandFaultConsumer);
+                receiveEndpointConfigurator.Consumer(typeof(MyCommandFaultConsumer), type => _myCommandFaultConsumer);
             });
         }
 
@@ -65,10 +64,10 @@ namespace MassTransitInMemoryTestingExample.Tests
         public async Task Consumer_has_been_registered_to_receive_message()
         {
             await SendMyCommand();
-            WaitUntilConsumerHasProcessedMessageOrTimedOut(_manualResetEvent);
+            WaitUntilConditionMetOrTimedOut(() => State.CommandsReceived.Any());
 
-            Assert.That(_myCommandConsumer.ReceivedMessages.Any(), Is.True);
-            Assert.That(_myCommandFaultConsumer.ReceivedMessages.Any(), Is.False);
+            Assert.That(State.CommandsReceived.Count, Is.EqualTo(1));
+            Assert.That(State.CommandFaultsReceived.Count, Is.EqualTo(0));
         }
 
         private async Task SendMyCommand()
@@ -82,9 +81,15 @@ namespace MassTransitInMemoryTestingExample.Tests
             return await _busControl.GetSendEndpoint(new Uri($"{LoopbackAddress}{QueueName}"));
         }
 
-        private void WaitUntilConsumerHasProcessedMessageOrTimedOut(ManualResetEvent manualResetEvent)
+        private void WaitUntilConditionMetOrTimedOut(Func<bool> conditionMet)
         {
-            manualResetEvent.WaitOne(TimeSpan.FromSeconds(5));
+            var timeoutExpired = false;
+            var startTime = DateTime.Now;
+            while (!conditionMet() && !timeoutExpired)
+            {
+                Thread.Sleep(100);
+                timeoutExpired = DateTime.Now - startTime > TimeSpan.FromSeconds(5);
+            }
         }
     }
 }
