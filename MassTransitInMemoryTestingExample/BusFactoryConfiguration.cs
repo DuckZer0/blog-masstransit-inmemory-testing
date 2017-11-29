@@ -1,4 +1,5 @@
-﻿using MassTransit;
+﻿using System;
+using MassTransit;
 using MassTransit.Log4NetIntegration;
 
 namespace MassTransitInMemoryTestingExample
@@ -28,21 +29,25 @@ namespace MassTransitInMemoryTestingExample
 
         private void ConfigureConsumersListeningOnMainQueue(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            busFactoryConfigurator.ReceiveEndpoint(QueueName,
-                receiveEndpointConfigurator =>
-                {
-                    receiveEndpointConfigurator.Consumer(typeof(MyCommandConsumer), _consumerFactory.Create);
-                    receiveEndpointConfigurator.Consumer(typeof(MyEventConsumer), _consumerFactory.Create);
-                });
+            var consumerTypes = new[] { typeof(MyCommandConsumer), typeof(MyEventConsumer) };
+            RegisterConsumers(busFactoryConfigurator, QueueName, consumerTypes);
         }
 
         private void ConfigureConsumersListeningOnErrorQueue(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            busFactoryConfigurator.ReceiveEndpoint(ErrorQueueName,
+            var consumerTypes = new[] { typeof(MyCommandFaultConsumer), typeof(MyEventFaultConsumer) };
+            RegisterConsumers(busFactoryConfigurator, ErrorQueueName, consumerTypes);
+        }
+
+        private void RegisterConsumers(IBusFactoryConfigurator busFactoryConfigurator, string queueName, Type[] consumerTypes)
+        {
+            busFactoryConfigurator.ReceiveEndpoint(queueName,
                 receiveEndpointConfigurator =>
                 {
-                    receiveEndpointConfigurator.Consumer(typeof(MyCommandFaultConsumer), _consumerFactory.Create);
-                    receiveEndpointConfigurator.Consumer(typeof(MyEventFaultConsumer), _consumerFactory.Create);
+                    foreach (var consumerType in consumerTypes)
+                    {
+                        receiveEndpointConfigurator.Consumer(consumerType, _consumerFactory.Create);
+                    }
                 });
         }
     }
