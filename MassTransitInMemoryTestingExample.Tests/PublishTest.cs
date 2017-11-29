@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MassTransit;
-using MassTransit.Log4NetIntegration;
 using NUnit.Framework;
 
 namespace MassTransitInMemoryTestingExample.Tests
@@ -11,52 +10,22 @@ namespace MassTransitInMemoryTestingExample.Tests
     [TestFixture]
     public class PublishTest
     {
-        private const string QueueName = "myQueue";
-        private const string ErrorQueueName = "myQueue_error";
         private IBusControl _busControl;
         private IConsumerFactory _consumerFactory;
+        private BusFactoryConfiguration _busFactoryConfiguration;
 
         [SetUp]
         public void SetUp()
         {
             _consumerFactory = new DefaultConstructorConsumerFactory();
+            _busFactoryConfiguration = new BusFactoryConfiguration(_consumerFactory);
             CreateBus();
             _busControl.Start();
         }
 
         private void CreateBus()
         {
-            _busControl = Bus.Factory.CreateUsingInMemory(ConfigureBus);
-        }
-
-        private void ConfigureBus(IBusFactoryConfigurator busFactoryConfigurator)
-        {
-            busFactoryConfigurator.UseLog4Net();
-            ConfigureReceiveEndpoints(busFactoryConfigurator);
-        }
-
-        private void ConfigureReceiveEndpoints(IBusFactoryConfigurator busFactoryConfigurator)
-        {
-            ConfigureReceiveEndpointsToListenForMyEvent(busFactoryConfigurator);
-            ConfigureReceiveEndpointToListenForFaults(busFactoryConfigurator);
-        }
-
-        private void ConfigureReceiveEndpointsToListenForMyEvent(IBusFactoryConfigurator busFactoryConfigurator)
-        {
-            busFactoryConfigurator.ReceiveEndpoint(QueueName,
-                receiveEndpointConfigurator =>
-                {
-                    receiveEndpointConfigurator.Consumer(typeof(MyEventConsumer), _consumerFactory.Create);
-                });
-        }
-
-        private void ConfigureReceiveEndpointToListenForFaults(IBusFactoryConfigurator busFactoryConfigurator)
-        {
-            busFactoryConfigurator.ReceiveEndpoint(ErrorQueueName,
-                receiveEndpointConfigurator =>
-                {
-                    receiveEndpointConfigurator.Consumer(typeof(MyEventFaultConsumer), _consumerFactory.Create);
-                });
+            _busControl = Bus.Factory.CreateUsingInMemory(_busFactoryConfiguration.Configure);
         }
 
         [Test]
