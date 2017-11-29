@@ -28,14 +28,14 @@ namespace MassTransitInMemoryTestingExample
 
         private void ConfigureConsumersListeningOnMainQueue(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            var consumerRegistrar = new ConsumerRegistrar(_consumerFactory.Create, QueueName, typeof(MyCommandConsumer), typeof(MyEventConsumer));
-            consumerRegistrar.Register(busFactoryConfigurator);
+            var receiveEndpoint = new ReceiveEndpoint(_consumerFactory.Create, QueueName, typeof(MyCommandConsumer), typeof(MyEventConsumer));
+            receiveEndpoint.Register(busFactoryConfigurator);
         }
 
         private void ConfigureConsumersListeningOnErrorQueue(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            var consumerRegistrar = new ConsumerRegistrar(_consumerFactory.Create, ErrorQueueName, typeof(MyCommandFaultConsumer), typeof(MyEventFaultConsumer));
-            consumerRegistrar.Register(busFactoryConfigurator);
+            var receiveEndpoint = new ReceiveEndpoint(_consumerFactory.Create, ErrorQueueName, typeof(MyCommandFaultConsumer), typeof(MyEventFaultConsumer));
+            receiveEndpoint.Register(busFactoryConfigurator);
         }
     }
 }
