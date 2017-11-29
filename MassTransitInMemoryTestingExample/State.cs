@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using MassTransit;
 
-namespace MassTransitInMemoryTestingExample.Tests
+namespace MassTransitInMemoryTestingExample
 {
     public static class State
     {

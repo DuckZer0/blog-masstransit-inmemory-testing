@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MassTransitInMemoryTestingExample.Tests
+namespace MassTransitInMemoryTestingExample
 {
     public interface IConsumerFactory
     {

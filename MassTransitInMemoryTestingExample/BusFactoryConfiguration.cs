@@ -1,7 +1,7 @@
 ﻿using MassTransit;
 using MassTransit.Log4NetIntegration;
 
-namespace MassTransitInMemoryTestingExample.Tests
+namespace MassTransitInMemoryTestingExample
 {
     public class BusFactoryConfiguration
     {

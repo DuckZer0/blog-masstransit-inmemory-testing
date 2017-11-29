@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using MassTransit;
 
-namespace MassTransitInMemoryTestingExample.Tests
+namespace MassTransitInMemoryTestingExample
 {
     public class MyCommandConsumer
         : IConsumer<MyCommand>

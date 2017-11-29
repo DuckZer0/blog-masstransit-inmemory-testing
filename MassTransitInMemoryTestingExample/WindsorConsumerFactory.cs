@@ -1,7 +1,7 @@
 ﻿using System;
 using Castle.Windsor;
 
-namespace MassTransitInMemoryTestingExample.Tests
+namespace MassTransitInMemoryTestingExample
 {
     public class WindsorConsumerFactory : IConsumerFactory
     {
