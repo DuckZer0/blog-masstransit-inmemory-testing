@@ -6,20 +6,17 @@ namespace MassTransitInMemoryTestingExample
     public class ReceiveEndpoint
     {
         private readonly string _queueName;
-        private readonly Type[] _consumerTypes;
+        private readonly Action<IReceiveEndpointConfigurator> _configure;
 
-        public ReceiveEndpoint(string queueName, params Type[] consumerTypes)
+        public ReceiveEndpoint(string queueName, Action<IReceiveEndpointConfigurator> configure)
         {
             _queueName = queueName;
-            _consumerTypes = consumerTypes;
+            _configure = configure;
         }
 
-        public void Register(IBusFactoryConfigurator busFactoryConfigurator, Func<Type, object> create)
+        public void Register(IBusFactoryConfigurator busFactoryConfigurator)
         {
-            var consumerRegistrar = new ConsumerRegistrar(create, _consumerTypes);
-            busFactoryConfigurator.ReceiveEndpoint(
-                _queueName,
-                consumerRegistrar.Configure);
+            busFactoryConfigurator.ReceiveEndpoint(_queueName, _configure);
         }
     }
 }
