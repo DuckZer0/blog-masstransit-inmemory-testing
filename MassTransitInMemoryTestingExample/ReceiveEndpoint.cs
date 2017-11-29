@@ -16,14 +16,10 @@ namespace MassTransitInMemoryTestingExample
 
         public void Register(IBusFactoryConfigurator busFactoryConfigurator, Func<Type, object> create)
         {
-            busFactoryConfigurator.ReceiveEndpoint(_queueName,
-                receiveEndpointConfigurator =>
-                {
-                    foreach (var consumerType in _consumerTypes)
-                    {
-                        receiveEndpointConfigurator.Consumer(consumerType, create);
-                    }
-                });
+            var consumerRegistrar = new ConsumerRegistrar(create, _consumerTypes);
+            busFactoryConfigurator.ReceiveEndpoint(
+                _queueName,
+                consumerRegistrar.Configure);
         }
     }
 }
