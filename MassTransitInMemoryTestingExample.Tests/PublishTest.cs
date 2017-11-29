@@ -14,15 +14,14 @@ namespace MassTransitInMemoryTestingExample.Tests
         private const string QueueName = "myQueue";
         private const string ErrorQueueName = "myQueue_error";
         private IBusControl _busControl;
-        private Consumer<MyEvent> _myEventConsumer;
-        private Consumer<Fault<MyEvent>> _myEventFaultConsumer;
-        private readonly ManualResetEvent _manualResetEvent = new ManualResetEvent(false);
+        private MyEventConsumer _myEventConsumer;
+        private MyEventFaultConsumer _myEventFaultConsumer;
 
         [SetUp]
         public void SetUp()
         {
-            _myEventConsumer = new Consumer<MyEvent>(_manualResetEvent);
-            _myEventFaultConsumer = new Consumer<Fault<MyEvent>>(_manualResetEvent);
+            _myEventConsumer = new MyEventConsumer();
+            _myEventFaultConsumer = new MyEventFaultConsumer();
             CreateBus();
             _busControl.Start();
         }
@@ -49,7 +48,7 @@ namespace MassTransitInMemoryTestingExample.Tests
             busFactoryConfigurator.ReceiveEndpoint(QueueName,
                 receiveEndpointConfigurator =>
                 {
-                    receiveEndpointConfigurator.Consumer(typeof(Consumer<MyEvent>), consumerType => _myEventConsumer);
+                    receiveEndpointConfigurator.Consumer(typeof(MyEventConsumer), consumerType => _myEventConsumer);
                 });
         }
 
@@ -58,7 +57,7 @@ namespace MassTransitInMemoryTestingExample.Tests
             busFactoryConfigurator.ReceiveEndpoint(ErrorQueueName,
                 receiveEndpointConfigurator =>
                 {
-                    receiveEndpointConfigurator.Consumer(typeof(Consumer<Fault<MyEvent>>), type => _myEventFaultConsumer);
+                    receiveEndpointConfigurator.Consumer(typeof(MyEventFaultConsumer), type => _myEventFaultConsumer);
                 });
         }
 
@@ -66,10 +65,10 @@ namespace MassTransitInMemoryTestingExample.Tests
         public async Task Consumer_has_been_registered_to_receive_message()
         {
             await PublishMyEvent();
-            WaitUntilConsumerHasProcessedMessageOrTimedOut(_manualResetEvent);
+            WaitUntilConditionMetOrTimedOut(() => State.EventsReceived.Any());
 
-            Assert.That(_myEventConsumer.ReceivedMessages.Any(), Is.True);
-            Assert.That(_myEventFaultConsumer.ReceivedMessages.Any(), Is.False);
+            Assert.That(State.EventsReceived.Count, Is.EqualTo(1));
+            Assert.That(State.EventFaultsReceived.Count, Is.EqualTo(0));
         }
 
         private async Task PublishMyEvent()
@@ -77,9 +76,15 @@ namespace MassTransitInMemoryTestingExample.Tests
             await _busControl.Publish(new MyEvent());
         }
 
-        private void WaitUntilConsumerHasProcessedMessageOrTimedOut(ManualResetEvent manualResetEvent)
+        private void WaitUntilConditionMetOrTimedOut(Func<bool> conditionMet)
         {
-            manualResetEvent.WaitOne(TimeSpan.FromSeconds(5));
+            var timeoutExpired = false;
+            var startTime = DateTime.Now;
+            while (!conditionMet() && !timeoutExpired)
+            {
+                Thread.Sleep(100);
+                timeoutExpired = DateTime.Now - startTime > TimeSpan.FromSeconds(5);
+            }
         }
     }
 }
