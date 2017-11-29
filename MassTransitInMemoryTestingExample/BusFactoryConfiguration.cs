@@ -28,10 +28,7 @@ namespace MassTransitInMemoryTestingExample
                 new ReceiveEndpoint(ErrorQueueName, typeof(MyCommandFaultConsumer), typeof(MyEventFaultConsumer))
             };
 
-            foreach (var receiveEndpoint in receiveEndpoints)
-            {
-                receiveEndpoint.Register(busFactoryConfigurator, _consumerFactory.Create);
-            }
+            receiveEndpoints.ForEach(receiveEndpoint => receiveEndpoint.Register(busFactoryConfigurator, _consumerFactory.Create));
         }
     }
 }
