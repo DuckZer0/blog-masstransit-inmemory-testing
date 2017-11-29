@@ -63,10 +63,10 @@ namespace MassTransitInMemoryTestingExample.Tests
         }
 
         [Test]
-        public async Task Registers_consumer_type_supplied_to_consumerRegistrar()
+        public async Task Consumer_has_been_registered_to_receive_message()
         {
             await PublishMyEvent();
-            WaitUntilBusHasProcessedMessageOrTimedOut(_manualResetEvent);
+            WaitUntilConsumerHasProcessedMessageOrTimedOut(_manualResetEvent);
 
             Assert.That(_myEventConsumer.ReceivedMessages.Any(), Is.True);
             Assert.That(_myEventFaultConsumer.ReceivedMessages.Any(), Is.False);
@@ -77,7 +77,7 @@ namespace MassTransitInMemoryTestingExample.Tests
             await _busControl.Publish(new MyEvent());
         }
 
-        private void WaitUntilBusHasProcessedMessageOrTimedOut(ManualResetEvent manualResetEvent)
+        private void WaitUntilConsumerHasProcessedMessageOrTimedOut(ManualResetEvent manualResetEvent)
         {
             manualResetEvent.WaitOne(TimeSpan.FromSeconds(5));
         }
