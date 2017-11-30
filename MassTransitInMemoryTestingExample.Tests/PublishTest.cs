@@ -29,7 +29,7 @@ namespace MassTransitInMemoryTestingExample.Tests
         }
 
         [Test]
-        public async Task Consumer_has_been_registered_to_receive_message()
+        public async Task Consumer_has_been_registered_to_receive_event()
         {
             await PublishMyEvent();
             WaitUntilConditionMetOrTimedOut(() => State.EventsReceived.Any());

@@ -31,7 +31,7 @@ namespace MassTransitInMemoryTestingExample.Tests
         }
 
         [Test]
-        public async Task Consumer_has_been_registered_to_receive_message()
+        public async Task Consumer_has_been_registered_to_receive_command()
         {
             await SendMyCommand();
             WaitUntilConditionMetOrTimedOut(() => State.CommandsReceived.Any());
