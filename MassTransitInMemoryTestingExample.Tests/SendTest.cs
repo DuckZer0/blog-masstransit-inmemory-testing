@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MassTransit;
+using MassTransit.Testing.Observers;
 using NUnit.Framework;
 
 namespace MassTransitInMemoryTestingExample.Tests
@@ -15,6 +16,7 @@ namespace MassTransitInMemoryTestingExample.Tests
         private IBusControl _busControl;
         private IConsumerFactory _consumerFactory;
         private BusFactoryConfiguration _busFactoryConfiguration;
+        private BusTestConsumeObserver _busTestConsumeObserver;
 
         [SetUp]
         public void SetUp()
@@ -23,6 +25,8 @@ namespace MassTransitInMemoryTestingExample.Tests
             _busFactoryConfiguration = new BusFactoryConfiguration(_consumerFactory);
             CreateBus();
             _busControl.Start();
+            _busTestConsumeObserver = new BusTestConsumeObserver(TimeSpan.FromSeconds(10));
+            _busControl.ConnectConsumeObserver(_busTestConsumeObserver);
         }
 
         private void CreateBus()
@@ -38,6 +42,15 @@ namespace MassTransitInMemoryTestingExample.Tests
 
             Assert.That(State.CommandsReceived.Count, Is.EqualTo(1));
             Assert.That(State.CommandFaultsReceived.Count, Is.EqualTo(0));
+        }
+
+        [Test]
+        public async Task Consumer_has_been_registered_to_receive_command_alternative_approach()
+        {
+            await SendMyCommand();
+            WaitUntilConditionMetOrTimedOut(() => State.CommandsReceived.Any()); // test fails if we don't give consuming thread a chance to execute.
+
+            Assert.That(_busTestConsumeObserver.Messages.Count, Is.EqualTo(1));
         }
 
         private async Task SendMyCommand()
